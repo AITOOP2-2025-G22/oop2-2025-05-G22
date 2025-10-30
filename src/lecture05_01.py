@@ -1,31 +1,49 @@
-import numpy as np
+import os
 import cv2
-from my_module.K21999.lecture05_camera_image_capture import MyVideoCapture
+import numpy as np
+import sys
+sys.path.append("/Users/k24085kk/work/oop2/oop2-2025-05-G22/my_module/K21999")
+
+from lecture05_camera_image_capture import MyVideoCapture  # ← 学籍番号に合わせて変更
 
 def lecture05_01():
-
-    # カメラキャプチャ実行
+    # --- カメラキャプチャ ---
     app = MyVideoCapture()
-    app.run()
+    capture_img = app.run()
+    if capture_img is None:
+        print("Error: カメラ画像が取得できません。")
+        return
 
-    # 画像をローカル変数に保存
-    google_img : cv2.Mat = cv2.imread('images/google.png')
-    capture_img : cv2.Mat = cv2.imread('images/camera_capture.png') # 動作テスト用なので提出時にこの行を消すこと
-    # capture_img : cv2.Mat = "implement me"
+    # --- google検索画面画像の読み込み ---
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    google_path = os.path.join(base_dir, "images", "google.png")
+    google_img = cv2.imread(google_path)
+    if google_img is None:
+        print(f"Error: {google_path} が見つかりません。")
+        return
 
-    g_hight, g_width, g_channel = google_img.shape
-    c_hight, c_width, c_channel = capture_img.shape
-    print(google_img.shape)
-    print(capture_img.shape)
+    g_h, g_w, _ = google_img.shape
+    c_h, c_w, _ = capture_img.shape
 
-    for x in range(g_width):
-        for y in range(g_hight):
-            g, b, r = google_img[y, x]
-            # もし白色(255,255,255)だったら置き換える
-            if (b, g, r) == (255, 255, 255):
-                pass
-                #implement me
+    print(f"google.png size: {google_img.shape}")
+    print(f"capture image size: {capture_img.shape}")
 
-    # 書き込み処理
-    # implement me
+    # --- 白色領域のマスク作成 ---
+    white_mask = cv2.inRange(google_img, (250, 250, 250), (255, 255, 255))
 
+    # --- カメラ画像をタイル状に展開 ---
+    tile_x = int(np.ceil(g_w / c_w))
+    tile_y = int(np.ceil(g_h / c_h))
+    tiled_img = np.tile(capture_img, (tile_y, tile_x, 1))[:g_h, :g_w]
+
+    # --- 出力画像作成 ---
+    mask_3ch = cv2.merge([white_mask, white_mask, white_mask])
+    result_img = np.where(mask_3ch == 255, tiled_img, google_img)
+
+    # --- 保存 ---
+    output_filename = os.path.join(base_dir, "lecture05_01_K24085.png")  # ← 学籍番号に変更
+    cv2.imwrite(output_filename, result_img)
+    print(f"出力完了: {output_filename}")
+
+if __name__ == "__main__":
+    lecture05_01()
