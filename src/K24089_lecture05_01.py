@@ -11,7 +11,6 @@ def K24089_lecture05_01():
     # 画像をローカル変数に保存
     google_img : cv2.Mat = cv2.imread('images/google.png')
     capture_img : cv2.Mat = cv2.imread('images/camera_capture.png') 
-    # capture_img : cv2.Mat = "implement me"
 
     g_hight, g_width, g_channel = google_img.shape
     c_hight, c_width, c_channel = capture_img.shape
